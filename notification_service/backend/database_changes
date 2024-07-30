@@ -1,0 +1,72 @@
+#file to update database, connected with frontend to avoid manual work
+from flask import Flask, request, Response
+from pymongo import MongoClient
+from bson import json_util
+import json
+from flask_cors import CORS  # Import CORS
+
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})  # Allow requests from this origin
+
+# MongoDB setup
+client = MongoClient('mongodb://localhost:27017')
+db = client['flight_status_db']
+flights_collection = db['flights']
+users_collection = db['Users']
+
+@app.route('/update', methods=['POST'])
+def update_flight_and_users():
+    try:
+        data = request.json
+        flight_number = data.get('flight_number')
+        new_departure_date = data.get('new_departure_date')
+        new_departure_time = data.get('new_departure_time')
+        new_arrival_date = data.get('new_arrival_date')
+        new_arrival_time = data.get('new_arrival_time')
+
+        # Update flights collection
+        flights_update_result = flights_collection.update_many(
+            {'flight_number': flight_number},
+            {
+                '$set': {
+                    'departure_date': new_departure_date,
+                    'departure_time': new_departure_time,
+                    'arrival_date': new_arrival_date,
+                    'arrival_time': new_arrival_time
+                }
+            }
+        )
+
+        # Update users collection
+        users_update_result = users_collection.update_many(
+            {'flight_number': flight_number},
+            {
+                '$set': {
+                    'departure_date': new_departure_date,
+                    'departure_time': new_departure_time,
+                    'arrival_date': new_arrival_date,
+                    'arrival_time': new_arrival_time
+                }
+            }
+        )
+
+        # Create response data
+        response_data = {
+            'flights': flights_update_result.modified_count,
+            'users': users_update_result.modified_count
+        }
+
+        # Return response as JSON
+        return Response(
+            json.dumps(response_data, default=json_util.default),
+            mimetype='application/json'
+        )
+
+    except Exception as e:
+        return Response(
+            json.dumps({'error': str(e)}, default=json_util.default),
+            mimetype='application/json'
+        )
+
+if __name__ == '__main__':
+    app.run(port=5001)  # Changed port to 5001 to avoid conflicts

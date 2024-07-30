@@ -6,7 +6,7 @@
 *.pyd
 
 # dependencies
-/venv
+**/venv/
 /.pnp
 .pnp.js
 /__pychace__

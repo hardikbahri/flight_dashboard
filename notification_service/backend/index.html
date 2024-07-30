@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Flight Information</title>
+    <script>
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const flightNumber = document.getElementById('flight_number').value;
+            const newDepartureDate = document.getElementById('new_departure_date').value;
+            const newDepartureTime = document.getElementById('new_departure_time').value;
+            const newArrivalDate = document.getElementById('new_arrival_date').value;
+            const newArrivalTime = document.getElementById('new_arrival_time').value;
+
+            try {
+                const response = await fetch('http://localhost:5001/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        flight_number: flightNumber,
+                        new_departure_date: newDepartureDate,
+                        new_departure_time: newDepartureTime,
+                        new_arrival_date: newArrivalDate,
+                        new_arrival_time: newArrivalTime
+                    })
+                });
+
+                const result = await response.json();
+                document.getElementById('result').innerText = `Updated ${result.flights} flights and ${result.users} users.`;
+            } catch (error) {
+                document.getElementById('result').innerText = `Failed to update: ${error}`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Update Flight Information</h1>
+    <form onsubmit="submitForm(event)">
+        <label for="flight_number">Flight Number:</label>
+        <input type="text" id="flight_number" required>
+        <br>
+        <label for="new_departure_date">New Departure Date (YYYY-MM-DD):</label>
+        <input type="date" id="new_departure_date" required>
+        <br>
+        <label for="new_departure_time">New Departure Time (HH:MM:SS):</label>
+        <input type="time" id="new_departure_time" required>
+        <br>
+        <label for="new_arrival_date">New Arrival Date (YYYY-MM-DD):</label>
+        <input type="date" id="new_arrival_date" required>
+        <br>
+        <label for="new_arrival_time">New Arrival Time (HH:MM:SS):</label>
+        <input type="time" id="new_arrival_time" required>
+        <br>
+        <button type="submit">Update Flight Information</button>
+    </form>
+    <div id="result"></div>
+</body>
+</html>
